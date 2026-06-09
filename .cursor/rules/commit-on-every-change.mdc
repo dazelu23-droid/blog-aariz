@@ -1,0 +1,53 @@
+---
+description: Commit code after every change in this project
+alwaysApply: true
+---
+
+# Commit on Every Change
+
+After completing any code change in this project, create a git commit before finishing the task.
+
+## When to Commit
+
+- Commit after each logical unit of work (feature, fix, refactor, test, or docs update).
+- If you make multiple related edits in one turn, commit once when the work is complete.
+- Do not leave uncommitted changes at the end of a task unless the user explicitly asks you not to commit.
+
+## Git Safety Protocol
+
+- NEVER update the git config
+- NEVER run destructive/irreversible git commands (push --force, hard reset, etc.) unless the user explicitly requests them
+- NEVER skip hooks (--no-verify, --no-gpg-sign, etc.) unless the user explicitly requests it
+- NEVER force push to main/master; warn the user if they request it
+- Avoid git commit --amend unless all amend conditions in project/user rules are met
+- Do not commit files that likely contain secrets (.env, credentials.json, etc.)
+- Do not push to remote unless the user explicitly asks
+
+## Commit Workflow
+
+Run these in parallel before committing:
+
+1. `git status` — see untracked and modified files
+2. `git diff` — review staged and unstaged changes
+3. `git log` — match recent commit message style
+
+Then sequentially:
+
+1. Stage relevant files (exclude secrets)
+2. Commit with a concise 1–2 sentence message focused on **why**, not just what
+3. Run `git status` to verify success
+
+Use a HEREDOC for the commit message:
+
+```bash
+git commit -m "$(cat <<'EOF'
+Brief summary of why this change was made.
+
+EOF
+)"
+```
+
+## If Commit Fails
+
+- If a pre-commit hook rejects the commit, fix the issue and create a **new** commit (do not amend a failed commit)
+- If there are no changes to commit, skip committing
