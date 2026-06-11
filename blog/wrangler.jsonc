@@ -1,0 +1,16 @@
+{
+  "name": "blog-aariz",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./static",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blog-aariz-db",
+      "database_id": "PLACEHOLDER"
+    }
+  ]
+}

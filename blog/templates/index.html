@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Home — Blog Aariz{% endblock %}
+{% block content %}
+  <section class="hero-banner">
+    <img
+      src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&q=80"
+      alt="A cozy desk with a laptop and coffee"
+      class="hero-img"
+    >
+    <div class="hero-text">
+      <h1>Welcome to Blog Aariz</h1>
+      <p>Stories, ideas, and everyday discoveries.</p>
+    </div>
+  </section>
+  <h1 class="page-title">Latest Posts</h1>
+  {% include "_post_list.html" %}
+{% endblock %}

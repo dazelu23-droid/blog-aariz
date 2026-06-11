@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Search — Blog Aariz{% endblock %}
+{% block content %}
+  <h1 class="page-title">Search</h1>
+  <form action="{{ url_for('search.search') }}" method="get" class="search-form" id="search-form">
+    <label for="search-input" class="visually-hidden">Search posts</label>
+    <input type="search" id="search-input" name="q" value="{{ query }}" placeholder="Search posts..." maxlength="100">
+    <button type="submit" class="btn btn-primary" id="search-submit">Search</button>
+  </form>
+  {% if empty %}
+    <p class="empty-state" id="search-prompt">Enter a search term to find posts.</p>
+  {% else %}
+    {% include "_post_list.html" %}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% if posts %}
+  <div class="post-list" id="post-list">
+    {% for post in posts %}
+      <article class="post-card" id="post-card-{{ post.id }}">
+        <a href="{{ url_for('posts.detail', post_id=post.id) }}" class="post-card-link">
+          <h2 class="post-title">{{ post.title }}</h2>
+          <p class="post-preview">{{ post.preview }}</p>
+          <div class="post-meta">
+            <span class="post-author">{{ post.author }}</span>
+            <time class="post-date" datetime="{{ post.created_at }}">{{ post.created_at }}</time>
+          </div>
+        </a>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="empty-state" id="empty-posts">No posts yet. Be the first to write one!</p>
+{% endif %}
