@@ -5,6 +5,7 @@
   var slug = detail.getAttribute("data-home-slug");
   var csrfMeta = document.querySelector('meta[name="csrf-token"]');
   var csrfToken = csrfMeta ? csrfMeta.getAttribute("content") : "";
+  var MIN_PUBLIC_RATINGS = 10;
 
   function apiPost(url, body) {
     return fetch(url, {
@@ -21,6 +22,76 @@
     var d = document.createElement("div");
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  function ratingSummaryHtml(avg, count) {
+    if (count >= MIN_PUBLIC_RATINGS) {
+      var full = Math.round(avg);
+      var stars = "";
+      for (var i = 1; i <= 5; i++) {
+        stars += '<span class="star' + (i <= full ? " filled" : "") + '">★</span>';
+      }
+      return '<span class="stars stars-lg" aria-label="' + avg.toFixed(1) + ' out of 5 stars">' + stars + '</span> ' +
+        '<span class="rating-text">' + avg.toFixed(1) + " average from " + count + " rating" + (count === 1 ? "" : "s") + "</span>";
+    }
+    if (count === 0) {
+      return '<span class="rating-pending"><span class="rating-text">Average shown after ' + MIN_PUBLIC_RATINGS + " ratings</span></span>";
+    }
+    return '<span class="rating-pending"><span class="rating-text">' + count + " of " + MIN_PUBLIC_RATINGS + " ratings for average</span></span>";
+  }
+
+  function setPageBg(bg) {
+    if (!bg) return;
+    document.documentElement.style.setProperty("--bg", bg);
+    document.documentElement.style.setProperty("--surface", "color-mix(in srgb, " + bg + " 55%, #fffdf9)");
+    document.documentElement.style.setProperty("--border", "color-mix(in srgb, " + bg + " 70%, #c4b8a8)");
+  }
+
+  var slider = document.getElementById("image-slider");
+  if (slider) {
+    var slides = slider.querySelectorAll(".slider-slide");
+    var dots = slider.querySelectorAll(".slider-dot");
+    var caption = document.getElementById("slider-caption");
+    var counter = document.getElementById("slider-counter");
+    var prevBtn = document.getElementById("slider-prev");
+    var nextBtn = document.getElementById("slider-next");
+    var current = 0;
+    var total = slides.length;
+
+    function goTo(index) {
+      if (!total) return;
+      current = (index + total) % total;
+      slides.forEach(function (slide, i) {
+        slide.classList.toggle("active", i === current);
+      });
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle("active", i === current);
+      });
+      var active = slides[current];
+      if (caption && active) {
+        var img = active.querySelector("img");
+        caption.textContent = img ? img.getAttribute("alt") || "" : "";
+      }
+      if (counter) counter.textContent = (current + 1) + " / " + total;
+      var bg = active ? active.getAttribute("data-bg") : slider.getAttribute("data-base-bg");
+      setPageBg(bg);
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", function () { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { goTo(current + 1); });
+    dots.forEach(function (dot) {
+      dot.addEventListener("click", function () {
+        goTo(Number(dot.getAttribute("data-index")));
+      });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (!slider.contains(document.activeElement) && document.activeElement !== document.body) return;
+      if (e.key === "ArrowLeft") goTo(current - 1);
+      if (e.key === "ArrowRight") goTo(current + 1);
+    });
+
+    goTo(0);
   }
 
   function buildCommentLi(c, isReply) {
@@ -66,9 +137,10 @@
         document.querySelectorAll(".star-btn").forEach(function (b, i) {
           b.classList.toggle("active", i < stars);
         });
-        var summary = document.querySelector(".home-rating-summary .rating-text");
+        var summary = document.getElementById("home-rating-summary");
         if (summary) {
-          summary.textContent = data.avg_rating.toFixed(1) + " average from " + data.rating_count + " rating" + (data.rating_count === 1 ? "" : "s");
+          summary.setAttribute("data-rating-count", data.rating_count);
+          summary.innerHTML = ratingSummaryHtml(data.avg_rating, data.rating_count);
         }
       });
     });

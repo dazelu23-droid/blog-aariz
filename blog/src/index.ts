@@ -422,11 +422,14 @@ app.post("/api/home/:slug/rate", async (c) => {
     .bind(home.id)
     .first()) as { avg_rating: number; rating_count: number };
 
+  const ratingCount = Number(ratingRow.rating_count) || 0;
+  const avgRating = Number(ratingRow.avg_rating) || 0;
   return jsonResponse({
     ok: true,
     stars,
-    avg_rating: Number(ratingRow.avg_rating) || 0,
-    rating_count: Number(ratingRow.rating_count) || 0,
+    avg_rating: avgRating,
+    rating_count: ratingCount,
+    show_average: ratingCount >= 10,
   });
 });
 

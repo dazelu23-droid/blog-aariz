@@ -1,3 +1,4 @@
+import { baseBgForHome, MIN_PUBLIC_RATINGS, slideBgsForHome, surfaceFromBg } from "./colors";
 import { DEFAULT_MUSIC_SLUG } from "./music";
 import { escapeHtml } from "./utils";
 
@@ -7,6 +8,7 @@ interface LayoutOpts {
   musicSlug?: string;
   searchQuery?: string;
   extraScripts?: string;
+  pageBg?: string;
 }
 
 interface User {
@@ -74,10 +76,9 @@ function homeCard(
     ? `<p class="home-card-desc">${escapeHtml(h.description.slice(0, 120))}${h.description.length > 120 ? "…" : ""}</p>`
     : "";
   const meta = opts.compact
-    ? `<div class="home-card-meta">${starsHtml(h.avg_rating)} <span class="rating-text">${h.avg_rating.toFixed(1)}</span></div>`
+    ? `<div class="home-card-meta">${ratingDisplay(h.avg_rating, h.rating_count, "sm")}</div>`
     : `<div class="home-card-meta">
-              ${starsHtml(h.avg_rating)}
-              <span class="rating-text">${h.rating_count ? `${h.avg_rating.toFixed(1)} (${h.rating_count})` : "No ratings yet"}</span>
+              ${ratingDisplay(h.avg_rating, h.rating_count, "sm")}
               <span class="comment-count">${h.comment_count} comment${h.comment_count === 1 ? "" : "s"}</span>
             </div>`;
   return `<article class="home-card" id="home-card-${h.slug}" data-search="${searchText}" data-music-slug="${escapeHtml(h.slug)}">
@@ -103,6 +104,54 @@ function starsHtml(avg: number, size = "sm"): string {
   }
   out += "</span>";
   return out;
+}
+
+function ratingText(avg: number, count: number): string {
+  if (count >= MIN_PUBLIC_RATINGS) {
+    return `${avg.toFixed(1)} average from ${count} rating${count === 1 ? "" : "s"}`;
+  }
+  if (count === 0) {
+    return `Average shown after ${MIN_PUBLIC_RATINGS} ratings`;
+  }
+  return `${count} of ${MIN_PUBLIC_RATINGS} ratings for average`;
+}
+
+function ratingDisplay(avg: number, count: number, size: "sm" | "lg" = "sm"): string {
+  const text = `<span class="rating-text">${ratingText(avg, count)}</span>`;
+  if (count >= MIN_PUBLIC_RATINGS) {
+    return `${starsHtml(avg, size)} ${text}`;
+  }
+  return `<span class="rating-pending">${text}</span>`;
+}
+
+function imageSlider(slug: string, images: HomeImage[]): string {
+  if (!images.length) return "";
+  const bgs = slideBgsForHome(slug, images.length);
+  const slides = images
+    .map(
+      (img, i) => `<figure class="slider-slide${i === 0 ? " active" : ""}" data-index="${i}" data-bg="${escapeHtml(bgs[i])}">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="${i === 0 ? "eager" : "lazy"}">
+    </figure>`,
+    )
+    .join("");
+  const dots = images
+    .map(
+      (_, i) =>
+        `<button type="button" class="slider-dot${i === 0 ? " active" : ""}" data-index="${i}" aria-label="Show image ${i + 1} of ${images.length}"></button>`,
+    )
+    .join("");
+  return `<section class="image-slider" id="image-slider" data-slide-count="${images.length}" data-base-bg="${escapeHtml(baseBgForHome(slug))}">
+    <button type="button" class="slider-arrow slider-prev" id="slider-prev" aria-label="Previous image">‹</button>
+    <div class="slider-viewport">
+      <div class="slider-track" id="slider-track">${slides}</div>
+    </div>
+    <button type="button" class="slider-arrow slider-next" id="slider-next" aria-label="Next image">›</button>
+    <div class="slider-footer">
+      <div class="slider-dots" id="slider-dots">${dots}</div>
+      <p class="slider-caption" id="slider-caption">${escapeHtml(images[0].alt)}</p>
+      <p class="slider-counter" id="slider-counter">1 / ${images.length}</p>
+    </div>
+  </section>`;
 }
 
 function nav(user: User | null, csrf: string, searchQuery = ""): string {
@@ -143,8 +192,13 @@ function layout(title: string, content: string, user: User | null, csrf: string,
   const musicSlug = opts.musicSlug || DEFAULT_MUSIC_SLUG;
   const searchQuery = opts.searchQuery ?? "";
   const extraScripts = opts.extraScripts || "";
+  const pageBg = opts.pageBg || "";
   const hasGrid = content.includes('id="home-grid"');
   const scripts = `${extraScripts}${hasGrid ? '<script src="/search.js" defer></script>' : ""}`;
+  const bodyClass = pageBg ? "home-theme-page" : "";
+  const bodyStyle = pageBg
+    ? ` style="--bg: ${pageBg}; --surface: ${surfaceFromBg(pageBg)};"`
+    : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -158,7 +212,7 @@ function layout(title: string, content: string, user: User | null, csrf: string,
   <script src="/music.js" defer></script>
   ${scripts}
 </head>
-<body>
+<body class="${bodyClass.trim()}"${bodyStyle}>
   <button type="button" class="music-toggle" id="music-toggle" aria-label="Unmute music" title="Play lofi music">
     <span id="music-icon">🔇</span>
   </button>
@@ -221,14 +275,8 @@ export function renderHomeType(
   user: User | null,
   csrf: string,
 ): string {
-  const gallery = images
-    .map(
-      (img) => `<figure class="gallery-item">
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy">
-      <figcaption>${escapeHtml(img.alt)}</figcaption>
-    </figure>`,
-    )
-    .join("");
+  const slider = imageSlider(home.slug, images);
+  const initialBg = images.length ? slideBgsForHome(home.slug, images.length)[0] : baseBgForHome(home.slug);
 
   const ratingStars = user
     ? `<div class="rating-input" id="rating-input" data-user-rating="${userRating || ""}">
@@ -256,23 +304,16 @@ export function renderHomeType(
 
   const content = `<article class="home-detail" id="home-detail" data-home-slug="${escapeHtml(home.slug)}">
     <a href="/" class="back-link">← All home styles</a>
-    <header class="home-header">
-      <img src="${escapeHtml(home.hero_image_url)}" alt="${escapeHtml(home.name)} home" class="home-hero-img">
-      <div class="home-header-text">
-        <h1 class="home-title">${escapeHtml(home.name)}</h1>
-        ${buildRankBadge(home.build_rank)}
-        ${originBadge(home.origin_name)}
-        <div class="home-rating-summary">
-          ${starsHtml(avgRating, "lg")}
-          <span class="rating-text">${ratingCount ? `${avgRating.toFixed(1)} average from ${ratingCount} rating${ratingCount === 1 ? "" : "s"}` : "Not rated yet"}</span>
-        </div>
+    ${slider}
+    <header class="home-header-text-block">
+      <h1 class="home-title">${escapeHtml(home.name)}</h1>
+      ${buildRankBadge(home.build_rank)}
+      ${originBadge(home.origin_name)}
+      <div class="home-rating-summary" id="home-rating-summary" data-rating-count="${ratingCount}">
+        ${ratingDisplay(avgRating, ratingCount, "lg")}
       </div>
     </header>
     <p class="home-description">${escapeHtml(home.description)}</p>
-    <section class="gallery-section">
-      <h2>Example Homes</h2>
-      <div class="gallery-grid">${gallery}</div>
-    </section>
     <section class="rating-section">
       <h2>Rate This Style</h2>
       ${ratingStars}
@@ -287,6 +328,7 @@ export function renderHomeType(
   <meta name="csrf-token" content="${escapeHtml(csrf)}">`;
   return layout(`${home.name} — ${SITE_NAME}`, content, user, csrf, {
     musicSlug: home.slug,
+    pageBg: initialBg,
     extraScripts: '<script src="/home.js" defer></script>',
   });
 }
