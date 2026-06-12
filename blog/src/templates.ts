@@ -1,6 +1,13 @@
+import { DEFAULT_MUSIC_SLUG } from "./music";
 import { escapeHtml } from "./utils";
 
 const SITE_NAME = "Home Builds";
+
+interface LayoutOpts {
+  musicSlug?: string;
+  searchQuery?: string;
+  extraScripts?: string;
+}
 
 interface User {
   username: string;
@@ -14,6 +21,7 @@ export interface HomeTypeSummary {
   description: string;
   hero_image_url: string;
   origin_name: string | null;
+  build_rank: number;
   avg_rating: number;
   rating_count: number;
   comment_count: number;
@@ -32,6 +40,7 @@ export interface HomeTypeDetail {
   description: string;
   hero_image_url: string;
   origin_name: string | null;
+  build_rank: number;
 }
 
 export interface CommentNode {
@@ -51,6 +60,40 @@ function originBadge(origin: string | null | undefined): string {
   return `<span class="origin-badge" title="Derived from ${escapeHtml(origin)}">Derived from ${escapeHtml(origin)}</span>`;
 }
 
+function buildRankBadge(rank: number): string {
+  const label = rank === 1 ? "#1 most built" : rank <= 5 ? `#${rank} among most built` : `#${rank} by build frequency`;
+  return `<span class="build-rank${rank <= 5 ? " build-rank-top" : ""}">${label}</span>`;
+}
+
+function homeCard(
+  h: HomeTypeSummary,
+  opts: { desc?: boolean; compact?: boolean } = {},
+): string {
+  const searchText = escapeHtml(`${h.name} ${h.description} ${h.origin_name || ""}`.toLowerCase());
+  const desc = opts.desc !== false && !opts.compact
+    ? `<p class="home-card-desc">${escapeHtml(h.description.slice(0, 120))}${h.description.length > 120 ? "…" : ""}</p>`
+    : "";
+  const meta = opts.compact
+    ? `<div class="home-card-meta">${starsHtml(h.avg_rating)} <span class="rating-text">${h.avg_rating.toFixed(1)}</span></div>`
+    : `<div class="home-card-meta">
+              ${starsHtml(h.avg_rating)}
+              <span class="rating-text">${h.rating_count ? `${h.avg_rating.toFixed(1)} (${h.rating_count})` : "No ratings yet"}</span>
+              <span class="comment-count">${h.comment_count} comment${h.comment_count === 1 ? "" : "s"}</span>
+            </div>`;
+  return `<article class="home-card" id="home-card-${h.slug}" data-search="${searchText}" data-music-slug="${escapeHtml(h.slug)}">
+        <a href="/home/${escapeHtml(h.slug)}" class="home-card-link" data-music-slug="${escapeHtml(h.slug)}">
+          <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
+          <div class="home-card-body">
+            ${buildRankBadge(h.build_rank)}
+            <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
+            ${originBadge(h.origin_name)}
+            ${desc}
+            ${meta}
+          </div>
+        </a>
+      </article>`;
+}
+
 function starsHtml(avg: number, size = "sm"): string {
   const full = Math.round(avg);
   const cls = size === "lg" ? "stars stars-lg" : "stars";
@@ -62,7 +105,7 @@ function starsHtml(avg: number, size = "sm"): string {
   return out;
 }
 
-function nav(user: User | null, csrf: string): string {
+function nav(user: User | null, csrf: string, searchQuery = ""): string {
   const auth = user
     ? `<span class="nav-user">${escapeHtml(user.username)}</span>
        <form action="/logout" method="post" class="logout-form">
@@ -71,42 +114,61 @@ function nav(user: User | null, csrf: string): string {
        </form>`
     : `<a href="/login" class="nav-link">Log in</a>
        <a href="/signup" class="btn btn-primary">Sign up</a>`;
-  return `<header class="site-header" id="site-header">
-    <div class="container header-inner">
-      <a href="/" class="logo">${SITE_NAME}</a>
-      <nav class="nav" aria-label="Main navigation">
-        <a href="/" class="nav-link">Home</a>
-        <a href="/search" class="nav-link">Search</a>
-        ${auth}
-        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <span class="theme-icon" id="theme-icon">🌙</span>
-        </button>
-      </nav>
+  return `<div class="site-top" id="site-top">
+    <header class="site-header" id="site-header">
+      <div class="container header-inner">
+        <a href="/" class="logo">${SITE_NAME}</a>
+        <nav class="nav" aria-label="Main navigation">
+          <a href="/" class="nav-link">Home</a>
+          ${auth}
+          <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+            <span class="theme-icon" id="theme-icon">🌙</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+    <div class="sticky-search-bar" id="sticky-search-bar">
+      <div class="container">
+        <form action="/search" method="get" class="sticky-search-form" id="sticky-search-form" role="search">
+          <label for="sticky-search-input" class="visually-hidden">Search home styles</label>
+          <input type="search" id="sticky-search-input" name="q" value="${escapeHtml(searchQuery)}" placeholder="Search 50 home styles by name, style, or origin…" maxlength="100" autocomplete="off">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+      </div>
     </div>
-  </header>`;
+  </div>`;
 }
 
-function layout(title: string, content: string, user: User | null, csrf: string, extraScripts = ""): string {
+function layout(title: string, content: string, user: User | null, csrf: string, opts: LayoutOpts = {}): string {
+  const musicSlug = opts.musicSlug || DEFAULT_MUSIC_SLUG;
+  const searchQuery = opts.searchQuery ?? "";
+  const extraScripts = opts.extraScripts || "";
+  const hasGrid = content.includes('id="home-grid"');
+  const scripts = `${extraScripts}${hasGrid ? '<script src="/search.js" defer></script>' : ""}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Explore 50 popular home build styles — photos, ratings, and community reviews.">
+  <meta name="description" content="Explore 50 popular home build styles — sorted by how often they are built, with photos, ratings, and reviews.">
+  <meta name="home-music-slug" content="${escapeHtml(musicSlug)}">
   <title>${escapeHtml(title)}</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/theme.js" defer></script>
   <script src="/music.js" defer></script>
-  ${extraScripts}
+  ${scripts}
 </head>
 <body>
   <button type="button" class="music-toggle" id="music-toggle" aria-label="Unmute music" title="Play lofi music">
     <span id="music-icon">🔇</span>
   </button>
-  <audio id="lofi-player" src="/lofi.mp3" loop preload="metadata"></audio>
-  ${nav(user, csrf)}
+  <audio id="lofi-player" loop preload="metadata"></audio>
+  ${nav(user, csrf, searchQuery)}
   <main class="main-content"><div class="container">${content}</div></main>
-  <footer class="site-footer"><div class="container footer-inner"><p>&copy; 2026 ${SITE_NAME}</p></div></footer>
+  <footer class="site-footer"><div class="container footer-inner">
+    <p>&copy; 2026 ${SITE_NAME}</p>
+    <p class="audio-credit">Music: <a href="https://github.com/btahir/open-lofi" rel="noopener noreferrer">Open Lo-Fi</a> (CC0, free to use)</p>
+  </div></footer>
 </body>
 </html>`;
 }
@@ -137,32 +199,16 @@ function renderComment(c: CommentNode, depth: number): string {
 
 export function renderIndex(homes: HomeTypeSummary[], user: User | null, csrf: string): string {
   const grid = homes.length
-    ? `<div class="home-grid" id="home-grid">${homes
-        .map(
-          (h) => `<article class="home-card" id="home-card-${h.slug}">
-        <a href="/home/${escapeHtml(h.slug)}" class="home-card-link">
-          <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
-          <div class="home-card-body">
-            <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
-            ${originBadge(h.origin_name)}
-            <p class="home-card-desc">${escapeHtml(h.description.slice(0, 120))}${h.description.length > 120 ? "…" : ""}</p>
-            <div class="home-card-meta">
-              ${starsHtml(h.avg_rating)}
-              <span class="rating-text">${h.rating_count ? `${h.avg_rating.toFixed(1)} (${h.rating_count})` : "No ratings yet"}</span>
-              <span class="comment-count">${h.comment_count} comment${h.comment_count === 1 ? "" : "s"}</span>
-            </div>
-          </div>
-        </a>
-      </article>`,
-        )
-        .join("")}</div>`
+    ? `<div class="home-grid" id="home-grid">${homes.map((h) => homeCard(h)).join("")}</div>
+       <p class="search-no-results hidden" id="search-no-results">No home styles match your search.</p>`
     : `<p class="empty-state">Loading home styles…</p>`;
   const content = `<section class="hero-banner">
     <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80" alt="Beautiful modern home exterior" class="hero-img">
-    <div class="hero-text"><h1>Find Your Perfect Home Style</h1><p>Explore 50 popular build types with photos, ratings, and community reviews.</p></div>
+    <div class="hero-text"><h1>Find Your Perfect Home Style</h1><p>50 build types ranked by how often they are built — with photos, ratings, and reviews.</p></div>
   </section>
-  <h1 class="page-title">Popular Home Build Styles</h1>${grid}`;
-  return layout(`Home — ${SITE_NAME}`, content, user, csrf);
+  <h1 class="page-title">Home Styles by Build Frequency</h1>
+  <p class="page-subtitle">Most commonly built styles appear first.</p>${grid}`;
+  return layout(`Home — ${SITE_NAME}`, content, user, csrf, { musicSlug: DEFAULT_MUSIC_SLUG });
 }
 
 export function renderHomeType(
@@ -214,6 +260,7 @@ export function renderHomeType(
       <img src="${escapeHtml(home.hero_image_url)}" alt="${escapeHtml(home.name)} home" class="home-hero-img">
       <div class="home-header-text">
         <h1 class="home-title">${escapeHtml(home.name)}</h1>
+        ${buildRankBadge(home.build_rank)}
         ${originBadge(home.origin_name)}
         <div class="home-rating-summary">
           ${starsHtml(avgRating, "lg")}
@@ -238,7 +285,10 @@ export function renderHomeType(
     </section>
   </article>
   <meta name="csrf-token" content="${escapeHtml(csrf)}">`;
-  return layout(`${home.name} — ${SITE_NAME}`, content, user, csrf, '<script src="/home.js" defer></script>');
+  return layout(`${home.name} — ${SITE_NAME}`, content, user, csrf, {
+    musicSlug: home.slug,
+    extraScripts: '<script src="/home.js" defer></script>',
+  });
 }
 
 export function renderLogin(errors: string[], username: string, next: string, user: User | null, csrf: string): string {
@@ -280,29 +330,14 @@ export function renderSignup(errors: string[], username: string, email: string, 
 
 export function renderSearch(homes: HomeTypeSummary[], query: string, empty: boolean, user: User | null, csrf: string): string {
   const list = empty
-    ? `<p class="empty-state" id="search-prompt">Search by home style name or description.</p>`
+    ? `<p class="empty-state" id="search-prompt">Use the search bar above to find home styles.</p>`
     : homes.length
-      ? `<div class="home-grid" id="home-grid">${homes
-          .map(
-            (h) => `<article class="home-card" id="home-card-${h.slug}">
-          <a href="/home/${escapeHtml(h.slug)}" class="home-card-link">
-            <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
-            <div class="home-card-body">
-              <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
-              ${originBadge(h.origin_name)}
-              <div class="home-card-meta">${starsHtml(h.avg_rating)} <span class="rating-text">${h.avg_rating.toFixed(1)}</span></div>
-            </div>
-          </a></article>`,
-          )
-          .join("")}</div>`
+      ? `<div class="home-grid" id="home-grid">${homes.map((h) => homeCard(h, { compact: true })).join("")}</div>
+         <p class="search-no-results hidden" id="search-no-results">No home styles match your search.</p>`
       : `<p class="empty-state">No home styles found for "${escapeHtml(query)}".</p>`;
-  const content = `<h1 class="page-title">Search Home Styles</h1>
-    <form action="/search" method="get" class="search-form" id="search-form">
-      <label for="search-input" class="visually-hidden">Search home styles</label>
-      <input type="search" id="search-input" name="q" value="${escapeHtml(query)}" placeholder="e.g. ranch, farmhouse, coastal…" maxlength="100">
-      <button type="submit" class="btn btn-primary" id="search-submit">Search</button>
-    </form>${list}`;
-  return layout(`Search — ${SITE_NAME}`, content, user, csrf);
+  const content = `<h1 class="page-title">Search Results</h1>
+    ${query ? `<p class="page-subtitle">Showing results for “${escapeHtml(query)}” (sorted by build frequency)</p>` : ""}${list}`;
+  return layout(`Search — ${SITE_NAME}`, content, user, csrf, { searchQuery: query });
 }
 
 export function renderError(code: number, message: string, user: User | null, csrf: string): string {

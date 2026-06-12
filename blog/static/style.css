@@ -107,14 +107,95 @@ a:hover {
   margin-bottom: 0.75rem;
 }
 
-.site-header {
+.site-top {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  z-index: 150;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   transition: var(--transition);
+}
+
+.site-header {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border-bottom: none;
+  transition: var(--transition);
+}
+
+.sticky-search-bar {
+  padding: 0 0 0.75rem;
+}
+
+.sticky-search-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sticky-search-form input {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+  min-height: 44px;
+  transition: var(--transition);
+}
+
+.sticky-search-form input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  margin: -0.5rem 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.build-rank {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.build-rank-top {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.home-card.hidden {
+  display: none;
+}
+
+.search-no-results.hidden {
+  display: none;
+}
+
+.search-no-results {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 1rem;
+}
+
+.audio-credit {
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+  opacity: 0.85;
 }
 
 .header-inner {

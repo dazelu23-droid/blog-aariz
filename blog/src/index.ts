@@ -108,7 +108,7 @@ async function requireCsrf(
 async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
   const { results } = await db
     .prepare(
-      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name,
+      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name, ht.sort_order AS build_rank,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
@@ -126,6 +126,7 @@ async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
     description: String(row.description),
     hero_image_url: String(row.hero_image_url),
     origin_name: row.origin_name ? String(row.origin_name) : null,
+    build_rank: Number(row.build_rank) || 0,
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,
@@ -210,7 +211,7 @@ async function fetchCommentTree(
 app.get("/style.css", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/theme.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/music.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
-app.get("/lofi.mp3", async (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get("/search.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/home.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 
 app.get("/", async (c) => {
@@ -230,33 +231,35 @@ app.get("/home/:slug", async (c) => {
   const { csrf } = await withCsrf(c, session);
   const slug = c.req.param("slug");
 
-  const home = (await c.env.DB.prepare("SELECT * FROM home_types WHERE slug = ?").bind(slug).first()) as HomeTypeDetail | null;
-  if (!home) {
+  const row = (await c.env.DB.prepare(
+    "SELECT id, slug, name, description, hero_image_url, origin_name, sort_order AS build_rank FROM home_types WHERE slug = ?",
+  ).bind(slug).first()) as HomeTypeDetail | null;
+  if (!row) {
     const user = session ? { id: session.userId, username: session.username } : null;
     return htmlResponse(renderError(404, "Home style not found", user, csrf), 404);
   }
 
   const { results: images } = await c.env.DB
     .prepare("SELECT id, url, alt FROM home_images WHERE home_type_id = ? ORDER BY sort_order ASC, id ASC")
-    .bind(home.id)
+    .bind(row.id)
     .all();
 
   const ratingRow = (await c.env.DB
     .prepare("SELECT COALESCE(AVG(stars), 0) AS avg_rating, COUNT(*) AS rating_count FROM ratings WHERE home_type_id = ?")
-    .bind(home.id)
+    .bind(row.id)
     .first()) as { avg_rating: number; rating_count: number };
 
   let userRating: number | null = null;
   if (session) {
-    const ur = (await c.env.DB.prepare("SELECT stars FROM ratings WHERE home_type_id = ? AND user_id = ?").bind(home.id, session.userId).first()) as { stars: number } | null;
+    const ur = (await c.env.DB.prepare("SELECT stars FROM ratings WHERE home_type_id = ? AND user_id = ?").bind(row.id, session.userId).first()) as { stars: number } | null;
     userRating = ur?.stars ?? null;
   }
 
-  const comments = await fetchCommentTree(c.env.DB, home.id, session?.userId ?? null);
+  const comments = await fetchCommentTree(c.env.DB, row.id, session?.userId ?? null);
   const user = session ? { id: session.userId, username: session.username } : null;
   return htmlResponse(
     renderHomeType(
-      home,
+      row,
       images as HomeImage[],
       Number(ratingRow.avg_rating) || 0,
       Number(ratingRow.rating_count) || 0,
@@ -365,7 +368,7 @@ app.get("/search", async (c) => {
   const pattern = `%${escapeLike(q.trim().slice(0, 100))}%`;
   const { results } = await c.env.DB
     .prepare(
-      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name,
+      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name, ht.sort_order AS build_rank,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
@@ -386,6 +389,7 @@ app.get("/search", async (c) => {
     description: String(row.description),
     hero_image_url: String(row.hero_image_url),
     origin_name: row.origin_name ? String(row.origin_name) : null,
+    build_rank: Number(row.build_rank) || 0,
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,

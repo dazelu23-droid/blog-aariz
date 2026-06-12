@@ -11,7 +11,7 @@ export async function ensureHomeData(db: D1Database): Promise<void> {
         .prepare(
           "UPDATE home_types SET name = ?, description = ?, hero_image_url = ?, origin_name = ?, sort_order = ? WHERE slug = ?",
         )
-        .bind(ht.name, ht.description, ht.heroImage, ht.originName ?? null, i + 1, ht.slug)
+        .bind(ht.name, ht.description, ht.heroImage, ht.originName ?? null, ht.buildRank, ht.slug)
         .run();
 
       const imgCount = (await db
@@ -33,7 +33,7 @@ export async function ensureHomeData(db: D1Database): Promise<void> {
       .prepare(
         "INSERT INTO home_types (slug, name, description, hero_image_url, origin_name, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
       )
-      .bind(ht.slug, ht.name, ht.description, ht.heroImage, ht.originName ?? null, i + 1)
+      .bind(ht.slug, ht.name, ht.description, ht.heroImage, ht.originName ?? null, ht.buildRank)
       .run();
     const homeTypeId = result.meta.last_row_id;
     for (const [j, img] of ht.images.entries()) {
