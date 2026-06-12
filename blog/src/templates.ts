@@ -1,4 +1,6 @@
-import { baseBgForHome, MIN_PUBLIC_RATINGS, slideBgsForHome, surfaceFromBg } from "./colors";
+import { MIN_PUBLIC_RATINGS, surfaceFromBg } from "./colors";
+import type { CostTier } from "./data";
+import { imageSetForSlug } from "./images";
 import { DEFAULT_MUSIC_SLUG } from "./music";
 import { escapeHtml } from "./utils";
 
@@ -24,6 +26,8 @@ export interface HomeTypeSummary {
   hero_image_url: string;
   origin_name: string | null;
   build_rank: number;
+  build_cost_tier: CostTier;
+  buy_cost_tier: CostTier;
   avg_rating: number;
   rating_count: number;
   comment_count: number;
@@ -43,6 +47,8 @@ export interface HomeTypeDetail {
   hero_image_url: string;
   origin_name: string | null;
   build_rank: number;
+  build_cost_tier: CostTier;
+  buy_cost_tier: CostTier;
 }
 
 export interface CommentNode {
@@ -67,6 +73,21 @@ function buildRankBadge(rank: number): string {
   return `<span class="build-rank${rank <= 5 ? " build-rank-top" : ""}">${label}</span>`;
 }
 
+const COST_LABELS: Record<CostTier, string> = {
+  high: "Most expensive",
+  moderate: "Moderate",
+  low: "Less expensive",
+};
+
+function costTierBadge(kind: "build" | "buy", tier: CostTier): string {
+  const prefix = kind === "build" ? "Build" : "Buy";
+  return `<span class="cost-badge cost-${tier}" title="${prefix} cost ranking">${prefix}: ${COST_LABELS[tier]}</span>`;
+}
+
+function costBadgeRow(buildTier: CostTier, buyTier: CostTier): string {
+  return `<div class="cost-badge-row">${costTierBadge("build", buildTier)}${costTierBadge("buy", buyTier)}</div>`;
+}
+
 function homeCard(
   h: HomeTypeSummary,
   opts: { desc?: boolean; compact?: boolean } = {},
@@ -83,9 +104,10 @@ function homeCard(
             </div>`;
   return `<article class="home-card" id="home-card-${h.slug}" data-search="${searchText}" data-music-slug="${escapeHtml(h.slug)}">
         <a href="/home/${escapeHtml(h.slug)}" class="home-card-link" data-music-slug="${escapeHtml(h.slug)}">
-          <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
+          <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy" crossorigin="anonymous">
           <div class="home-card-body">
             ${buildRankBadge(h.build_rank)}
+            ${costBadgeRow(h.build_cost_tier, h.buy_cost_tier)}
             <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
             ${originBadge(h.origin_name)}
             ${desc}
@@ -124,13 +146,12 @@ function ratingDisplay(avg: number, count: number, size: "sm" | "lg" = "sm"): st
   return `<span class="rating-pending">${text}</span>`;
 }
 
-function imageSlider(slug: string, images: HomeImage[]): string {
+function imageSlider(images: HomeImage[], coverTheme: string): string {
   if (!images.length) return "";
-  const bgs = slideBgsForHome(slug, images.length);
   const slides = images
     .map(
-      (img, i) => `<figure class="slider-slide${i === 0 ? " active" : ""}" data-index="${i}" data-bg="${escapeHtml(bgs[i])}">
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="${i === 0 ? "eager" : "lazy"}">
+      (img, i) => `<figure class="slider-slide${i === 0 ? " active" : ""}" data-index="${i}" data-theme-fallback="${escapeHtml(coverTheme)}">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="${i === 0 ? "eager" : "lazy"}" crossorigin="anonymous">
     </figure>`,
     )
     .join("");
@@ -140,7 +161,7 @@ function imageSlider(slug: string, images: HomeImage[]): string {
         `<button type="button" class="slider-dot${i === 0 ? " active" : ""}" data-index="${i}" aria-label="Show image ${i + 1} of ${images.length}"></button>`,
     )
     .join("");
-  return `<section class="image-slider" id="image-slider" data-slide-count="${images.length}" data-base-bg="${escapeHtml(baseBgForHome(slug))}">
+  return `<section class="image-slider" id="image-slider" data-slide-count="${images.length}" data-cover-theme="${escapeHtml(coverTheme)}">
     <button type="button" class="slider-arrow slider-prev" id="slider-prev" aria-label="Previous image">‹</button>
     <div class="slider-viewport">
       <div class="slider-track" id="slider-track">${slides}</div>
@@ -275,8 +296,8 @@ export function renderHomeType(
   user: User | null,
   csrf: string,
 ): string {
-  const slider = imageSlider(home.slug, images);
-  const initialBg = images.length ? slideBgsForHome(home.slug, images.length)[0] : baseBgForHome(home.slug);
+  const { coverTheme } = imageSetForSlug(home.slug, home.name);
+  const slider = imageSlider(images, coverTheme);
 
   const ratingStars = user
     ? `<div class="rating-input" id="rating-input" data-user-rating="${userRating || ""}">
@@ -308,6 +329,7 @@ export function renderHomeType(
     <header class="home-header-text-block">
       <h1 class="home-title">${escapeHtml(home.name)}</h1>
       ${buildRankBadge(home.build_rank)}
+      ${costBadgeRow(home.build_cost_tier, home.buy_cost_tier)}
       ${originBadge(home.origin_name)}
       <div class="home-rating-summary" id="home-rating-summary" data-rating-count="${ratingCount}">
         ${ratingDisplay(avgRating, ratingCount, "lg")}
@@ -328,8 +350,8 @@ export function renderHomeType(
   <meta name="csrf-token" content="${escapeHtml(csrf)}">`;
   return layout(`${home.name} — ${SITE_NAME}`, content, user, csrf, {
     musicSlug: home.slug,
-    pageBg: initialBg,
-    extraScripts: '<script src="/home.js" defer></script>',
+    pageBg: coverTheme,
+    extraScripts: '<script src="/cover-theme.js" defer></script><script src="/home.js" defer></script>',
   });
 }
 

@@ -185,6 +185,42 @@ a:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
+.cost-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.cost-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.cost-badge.cost-high {
+  color: #8b3a3a;
+  border-color: color-mix(in srgb, #c45c5c 35%, var(--border));
+  background: color-mix(in srgb, #f5e8e8 70%, var(--surface));
+}
+
+.cost-badge.cost-moderate {
+  color: #6b5a2e;
+  border-color: color-mix(in srgb, #c9a84c 35%, var(--border));
+  background: color-mix(in srgb, #f7f0df 70%, var(--surface));
+}
+
+.cost-badge.cost-low {
+  color: #2e5c3e;
+  border-color: color-mix(in srgb, #5c9e72 35%, var(--border));
+  background: color-mix(in srgb, #e8f3ec 70%, var(--surface));
+}
+
 .home-card.hidden {
   display: none;
 }

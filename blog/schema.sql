@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS home_types (
     description TEXT NOT NULL,
     hero_image_url TEXT NOT NULL,
     origin_name TEXT,
-    sort_order INTEGER NOT NULL DEFAULT 0
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    build_cost_tier TEXT NOT NULL DEFAULT 'moderate',
+    buy_cost_tier TEXT NOT NULL DEFAULT 'moderate'
 );
 
 CREATE TABLE IF NOT EXISTS home_images (

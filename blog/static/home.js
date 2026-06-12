@@ -40,12 +40,15 @@
     return '<span class="rating-pending"><span class="rating-text">' + count + " of " + MIN_PUBLIC_RATINGS + " ratings for average</span></span>";
   }
 
-  function setPageBg(bg) {
-    if (!bg) return;
-    document.documentElement.style.setProperty("--bg", bg);
-    document.documentElement.style.setProperty("--surface", "color-mix(in srgb, " + bg + " 55%, #fffdf9)");
-    document.documentElement.style.setProperty("--border", "color-mix(in srgb, " + bg + " 70%, #c4b8a8)");
-  }
+  var coverThemeApi = window.CoverTheme || {
+    setPageBg: function (bg) {
+      if (!bg) return;
+      document.documentElement.style.setProperty("--bg", bg);
+      document.documentElement.style.setProperty("--surface", "color-mix(in srgb, " + bg + " 55%, #fffdf9)");
+      document.documentElement.style.setProperty("--border", "color-mix(in srgb, " + bg + " 70%, #c4b8a8)");
+    },
+    sampleImage: function (img, cb) { cb(null); },
+  };
 
   var slider = document.getElementById("image-slider");
   if (slider) {
@@ -57,6 +60,25 @@
     var nextBtn = document.getElementById("slider-next");
     var current = 0;
     var total = slides.length;
+    var defaultTheme = slider.getAttribute("data-cover-theme") || "";
+
+    function applySlideTheme(slide) {
+      if (!slide) {
+        coverThemeApi.setPageBg(defaultTheme);
+        return;
+      }
+      var img = slide.querySelector("img");
+      var fallback = slide.getAttribute("data-theme-fallback") || defaultTheme;
+      if (!img) {
+        coverThemeApi.setPageBg(fallback);
+        return;
+      }
+      coverThemeApi.sampleImage(img, function (bg) {
+        var theme = bg || slide.getAttribute("data-bg") || fallback;
+        if (bg) slide.setAttribute("data-bg", bg);
+        coverThemeApi.setPageBg(theme);
+      });
+    }
 
     function goTo(index) {
       if (!total) return;
@@ -73,8 +95,7 @@
         caption.textContent = img ? img.getAttribute("alt") || "" : "";
       }
       if (counter) counter.textContent = (current + 1) + " / " + total;
-      var bg = active ? active.getAttribute("data-bg") : slider.getAttribute("data-base-bg");
-      setPageBg(bg);
+      applySlideTheme(active);
     }
 
     if (prevBtn) prevBtn.addEventListener("click", function () { goTo(current - 1); });
@@ -89,6 +110,15 @@
       if (!slider.contains(document.activeElement) && document.activeElement !== document.body) return;
       if (e.key === "ArrowLeft") goTo(current - 1);
       if (e.key === "ArrowRight") goTo(current + 1);
+    });
+
+    slides.forEach(function (slide) {
+      var img = slide.querySelector("img");
+      if (img) {
+        coverThemeApi.sampleImage(img, function (bg) {
+          if (bg) slide.setAttribute("data-bg", bg);
+        });
+      }
     });
 
     goTo(0);

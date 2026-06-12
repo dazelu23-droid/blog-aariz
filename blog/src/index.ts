@@ -109,6 +109,7 @@ async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
   const { results } = await db
     .prepare(
       `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name, ht.sort_order AS build_rank,
+              ht.build_cost_tier, ht.buy_cost_tier,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
@@ -127,6 +128,8 @@ async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
     hero_image_url: String(row.hero_image_url),
     origin_name: row.origin_name ? String(row.origin_name) : null,
     build_rank: Number(row.build_rank) || 0,
+    build_cost_tier: (row.build_cost_tier as "high" | "moderate" | "low") || "moderate",
+    buy_cost_tier: (row.buy_cost_tier as "high" | "moderate" | "low") || "moderate",
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,
@@ -213,6 +216,7 @@ app.get("/theme.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/music.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/search.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/home.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get("/cover-theme.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 
 app.get("/", async (c) => {
   await ensureHomeData(c.env.DB);
@@ -232,7 +236,7 @@ app.get("/home/:slug", async (c) => {
   const slug = c.req.param("slug");
 
   const row = (await c.env.DB.prepare(
-    "SELECT id, slug, name, description, hero_image_url, origin_name, sort_order AS build_rank FROM home_types WHERE slug = ?",
+    "SELECT id, slug, name, description, hero_image_url, origin_name, sort_order AS build_rank, build_cost_tier, buy_cost_tier FROM home_types WHERE slug = ?",
   ).bind(slug).first()) as HomeTypeDetail | null;
   if (!row) {
     const user = session ? { id: session.userId, username: session.username } : null;
@@ -369,6 +373,7 @@ app.get("/search", async (c) => {
   const { results } = await c.env.DB
     .prepare(
       `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name, ht.sort_order AS build_rank,
+              ht.build_cost_tier, ht.buy_cost_tier,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
@@ -390,6 +395,8 @@ app.get("/search", async (c) => {
     hero_image_url: String(row.hero_image_url),
     origin_name: row.origin_name ? String(row.origin_name) : null,
     build_rank: Number(row.build_rank) || 0,
+    build_cost_tier: (row.build_cost_tier as "high" | "moderate" | "low") || "moderate",
+    buy_cost_tier: (row.buy_cost_tier as "high" | "moderate" | "low") || "moderate",
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,
