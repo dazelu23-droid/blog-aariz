@@ -13,6 +13,7 @@ export interface HomeTypeSummary {
   name: string;
   description: string;
   hero_image_url: string;
+  origin_name: string | null;
   avg_rating: number;
   rating_count: number;
   comment_count: number;
@@ -30,6 +31,7 @@ export interface HomeTypeDetail {
   name: string;
   description: string;
   hero_image_url: string;
+  origin_name: string | null;
 }
 
 export interface CommentNode {
@@ -42,6 +44,11 @@ export interface CommentNode {
   dislikes: number;
   user_reaction: string | null;
   replies: CommentNode[];
+}
+
+function originBadge(origin: string | null | undefined): string {
+  if (!origin) return "";
+  return `<span class="origin-badge" title="Derived from ${escapeHtml(origin)}">Derived from ${escapeHtml(origin)}</span>`;
 }
 
 function starsHtml(avg: number, size = "sm"): string {
@@ -85,13 +92,18 @@ function layout(title: string, content: string, user: User | null, csrf: string,
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Explore the 20 most popular home build styles — photos, ratings, and community reviews.">
+  <meta name="description" content="Explore 50 popular home build styles — photos, ratings, and community reviews.">
   <title>${escapeHtml(title)}</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/theme.js" defer></script>
+  <script src="/music.js" defer></script>
   ${extraScripts}
 </head>
 <body>
+  <button type="button" class="music-toggle" id="music-toggle" aria-label="Unmute music" title="Play lofi music">
+    <span id="music-icon">🔇</span>
+  </button>
+  <audio id="lofi-player" src="/lofi.mp3" loop preload="metadata"></audio>
   ${nav(user, csrf)}
   <main class="main-content"><div class="container">${content}</div></main>
   <footer class="site-footer"><div class="container footer-inner"><p>&copy; 2026 ${SITE_NAME}</p></div></footer>
@@ -132,6 +144,7 @@ export function renderIndex(homes: HomeTypeSummary[], user: User | null, csrf: s
           <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
           <div class="home-card-body">
             <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
+            ${originBadge(h.origin_name)}
             <p class="home-card-desc">${escapeHtml(h.description.slice(0, 120))}${h.description.length > 120 ? "…" : ""}</p>
             <div class="home-card-meta">
               ${starsHtml(h.avg_rating)}
@@ -146,7 +159,7 @@ export function renderIndex(homes: HomeTypeSummary[], user: User | null, csrf: s
     : `<p class="empty-state">Loading home styles…</p>`;
   const content = `<section class="hero-banner">
     <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80" alt="Beautiful modern home exterior" class="hero-img">
-    <div class="hero-text"><h1>Find Your Perfect Home Style</h1><p>Explore 20 popular build types with photos, ratings, and community reviews.</p></div>
+    <div class="hero-text"><h1>Find Your Perfect Home Style</h1><p>Explore 50 popular build types with photos, ratings, and community reviews.</p></div>
   </section>
   <h1 class="page-title">Popular Home Build Styles</h1>${grid}`;
   return layout(`Home — ${SITE_NAME}`, content, user, csrf);
@@ -201,6 +214,7 @@ export function renderHomeType(
       <img src="${escapeHtml(home.hero_image_url)}" alt="${escapeHtml(home.name)} home" class="home-hero-img">
       <div class="home-header-text">
         <h1 class="home-title">${escapeHtml(home.name)}</h1>
+        ${originBadge(home.origin_name)}
         <div class="home-rating-summary">
           ${starsHtml(avgRating, "lg")}
           <span class="rating-text">${ratingCount ? `${avgRating.toFixed(1)} average from ${ratingCount} rating${ratingCount === 1 ? "" : "s"}` : "Not rated yet"}</span>
@@ -275,6 +289,7 @@ export function renderSearch(homes: HomeTypeSummary[], query: string, empty: boo
             <img src="${escapeHtml(h.hero_image_url)}" alt="${escapeHtml(h.name)} home" class="home-card-img" loading="lazy">
             <div class="home-card-body">
               <h2 class="home-card-title">${escapeHtml(h.name)}</h2>
+              ${originBadge(h.origin_name)}
               <div class="home-card-meta">${starsHtml(h.avg_rating)} <span class="rating-text">${h.avg_rating.toFixed(1)}</span></div>
             </div>
           </a></article>`,

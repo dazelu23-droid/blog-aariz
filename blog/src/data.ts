@@ -9,292 +9,118 @@ export interface HomeTypeData {
   description: string;
   heroImage: string;
   images: HomeImage[];
+  originName?: string;
 }
 
-const u = (id: string, alt: string): HomeImage => ({
-  url: `https://images.unsplash.com/${id}?w=800&q=80`,
-  alt,
-});
+const P = [
+  "photo-1564013799919-ab600027ffc6",
+  "photo-1600596542815-ffad4c1539a9",
+  "photo-1600585154340-be6161a56a0c",
+  "photo-1613490493576-7fde63acd811",
+  "photo-1512917774080-9991f1c4c750",
+  "photo-1605276374101-de4c0a3ff296",
+  "photo-1600047509807-ba8f84d040f3",
+  "photo-1583608205776-bfd35f0d9f00",
+  "photo-1568605114967-8130f3a36994",
+  "photo-1570129477492-45c003edd2be",
+  "photo-1600607687939-ce8a6c25118c",
+  "photo-1600607687644-c7171b42498f",
+  "photo-1600566753190-17f926baaecd",
+  "photo-1600047509358-637dc3f933cd",
+  "photo-1600607687929-4e01ac5e6259",
+  "photo-1600566752355-35792bedcfea",
+  "photo-1600585154526-990dced4db0d",
+  "photo-1449844908441-8829872d2607",
+  "photo-1518780664697-55e3ad007233",
+  "photo-1520250497591-112f2f40a3f4",
+  "photo-1523217582562-09d0def993a6",
+  "photo-1500382017468-9049fed747ef",
+  "photo-1499793983690-e29da59ef1c2",
+  "photo-1507525428034-b723cf961d3e",
+  "photo-1506905925346-21bda4d32df4",
+] as const;
+
+function hero(id: string): string {
+  return `https://images.unsplash.com/${id}?w=1200&q=80`;
+}
+
+function gallery(name: string, offset: number): HomeImage[] {
+  return Array.from({ length: 5 }, (_, i) => {
+    const id = P[(offset + i) % P.length];
+    return {
+      url: `https://images.unsplash.com/${id}?w=800&q=80`,
+      alt: `${name} home example ${i + 1}`,
+    };
+  });
+}
+
+function h(
+  slug: string,
+  name: string,
+  description: string,
+  photoOffset: number,
+  originName?: string,
+): HomeTypeData {
+  const heroId = P[photoOffset % P.length];
+  return {
+    slug,
+    name,
+    description,
+    heroImage: hero(heroId),
+    images: gallery(name, photoOffset + 1),
+    originName,
+  };
+}
 
 export const HOME_TYPES: HomeTypeData[] = [
-  {
-    slug: "ranch",
-    name: "Ranch",
-    description:
-      "Single-story ranch homes stretch wide across the lot with open floor plans and easy indoor-outdoor flow. They are especially popular with families and retirees who want step-free living and a relaxed, approachable feel.",
-    heroImage: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80",
-    images: [
-      u("photo-1564013799919-ab600027ffc6", "White ranch home with a green lawn"),
-      u("photo-1600596542815-ffad4c1539a9", "Modern ranch with large windows"),
-      u("photo-1600585154340-be6161a56a0c", "Ranch house with covered patio"),
-      u("photo-1613490493576-7fde63acd811", "Suburban ranch with driveway"),
-      u("photo-1512917774080-9991f1c4c750", "Ranch home at sunset"),
-    ],
-  },
-  {
-    slug: "colonial",
-    name: "Colonial",
-    description:
-      "Colonial homes feature symmetrical facades, centered front doors, and evenly spaced windows. This timeless style feels formal and welcoming, with formal living and dining rooms that anchor family gatherings.",
-    heroImage: "https://images.unsplash.com/photo-1605276374101-de4c0a3ff296?w=1200&q=80",
-    images: [
-      u("photo-1605276374101-de4c0a3ff296", "Classic colonial with columns"),
-      u("photo-1600047509807-ba8f84d040f3", "Brick colonial home"),
-      u("photo-1583608205776-bfd35f0d9f00", "Colonial house with shutters"),
-      u("photo-1568605114967-8130f3a36994", "Two-story colonial exterior"),
-      u("photo-1570129477492-45c003edd2be", "Colonial home with front porch"),
-    ],
-  },
-  {
-    slug: "craftsman",
-    name: "Craftsman",
-    description:
-      "Craftsman bungalows emphasize handcrafted details, low-pitched roofs, and wide front porches supported by tapered columns. Natural materials and built-in woodwork create a warm, artisan character inside and out.",
-    heroImage: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80",
-    images: [
-      u("photo-1568605114967-8130f3a36994", "Craftsman bungalow with porch"),
-      u("photo-1600585154526-990dced4db0d", "Craftsman home with stone accents"),
-      u("photo-1600566753190-17f926baaecd", "Craftsman exterior with gables"),
-      u("photo-1600607687939-ce8a6c25118c", "Craftsman living room with wood trim"),
-      u("photo-1600607687644-c7171b42498f", "Craftsman kitchen with built-ins"),
-    ],
-  },
-  {
-    slug: "mediterranean",
-    name: "Mediterranean",
-    description:
-      "Mediterranean homes draw from Spanish and Italian villas with stucco walls, red tile roofs, and arched doorways. Courtyards, wrought iron, and warm palettes evoke sun-drenched coastal living.",
-    heroImage: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80",
-    images: [
-      u("photo-1613490493576-7fde63acd811", "Mediterranean villa with pool"),
-      u("photo-1600585154340-be6161a56a0c", "Stucco home with tile roof"),
-      u("photo-1600047509358-637dc3f933cd", "Mediterranean courtyard"),
-      u("photo-1600607687929-4e01ac5e6259", "Arched entryway Mediterranean home"),
-      u("photo-1600566752355-35792bedcfea", "Mediterranean terrace at dusk"),
-    ],
-  },
-  {
-    slug: "contemporary",
-    name: "Contemporary",
-    description:
-      "Contemporary homes embrace clean lines, large glass panels, and open layouts that blur the boundary between inside and out. They suit buyers who want a sleek, current aesthetic with flexible living spaces.",
-    heroImage: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
-    images: [
-      u("photo-1600607687939-ce8a6c25118c", "Modern contemporary exterior"),
-      u("photo-1600607687644-c7171b42498f", "Contemporary open-plan interior"),
-      u("photo-1600585154340-be6161a56a0c", "Glass-walled modern home"),
-      u("photo-1600566753190-17f926baaecd", "Contemporary home with flat roof"),
-      u("photo-1600047509807-ba8f84d040f3", "Minimalist contemporary facade"),
-    ],
-  },
-  {
-    slug: "cottage",
-    name: "Cottage",
-    description:
-      "Cottage-style homes feel storybook charming with cozy rooms, pitched roofs, and flower-filled gardens. They are ideal for those who want a smaller footprint with personality and a sense of retreat.",
-    heroImage: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80",
-    images: [
-      u("photo-1570129477492-45c003edd2be", "Charming cottage with garden"),
-      u("photo-1583608205776-bfd35f0d9f00", "Stone cottage in the countryside"),
-      u("photo-1512917774080-9991f1c4c750", "Cottage with picket fence"),
-      u("photo-1600585154526-990dced4db0d", "Cozy cottage exterior"),
-      u("photo-1605276374101-de4c0a3ff296", "English cottage style home"),
-    ],
-  },
-  {
-    slug: "tudor",
-    name: "Tudor",
-    description:
-      "Tudor revival homes are known for steep gables, decorative half-timbering, and tall chimneys. The style feels historic and distinctive, often found in established neighborhoods with old-world charm.",
-    heroImage: "https://images.unsplash.com/photo-1600047509358-637dc3f933cd?w=1200&q=80",
-    images: [
-      u("photo-1600047509358-637dc3f933cd", "Tudor home with timber framing"),
-      u("photo-1600566752355-35792bedcfea", "Tudor revival with brick"),
-      u("photo-1600607687929-4e01ac5e6259", "Tudor house with arched windows"),
-      u("photo-1600585154526-990dced4db0d", "Tudor exterior at twilight"),
-      u("photo-1564013799919-ab600027ffc6", "Tudor-style suburban home"),
-    ],
-  },
-  {
-    slug: "cape-cod",
-    name: "Cape Cod",
-    description:
-      "Cape Cod homes are compact and symmetrical with steep roofs designed for snow and a central chimney. This New England classic feels snug, efficient, and perfectly suited to coastal or suburban lots.",
-    heroImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
-    images: [
-      u("photo-1600585154340-be6161a56a0c", "Cape Cod home with dormers"),
-      u("photo-1570129477492-45c003edd2be", "White Cape Cod with shutters"),
-      u("photo-1512917774080-9991f1c4c750", "Cape Cod near the coast"),
-      u("photo-1583608205776-bfd35f0d9f00", "Cape Cod with picket fence"),
-      u("photo-1605276374101-de4c0a3ff296", "Classic Cape Cod exterior"),
-    ],
-  },
-  {
-    slug: "victorian",
-    name: "Victorian",
-    description:
-      "Victorian homes celebrate ornate trim, bay windows, and wraparound porches from the late 19th century. They appeal to buyers who love character, high ceilings, and richly detailed architecture.",
-    heroImage: "https://images.unsplash.com/photo-1600566753190-17f926baaecd?w=1200&q=80",
-    images: [
-      u("photo-1600566753190-17f926baaecd", "Painted Victorian with turret"),
-      u("photo-1600047509807-ba8f84d040f3", "Victorian with ornate trim"),
-      u("photo-1600607687929-4e01ac5e6259", "Victorian porch and gables"),
-      u("photo-1600566752355-35792bedcfea", "Historic Victorian street"),
-      u("photo-1600585154526-990dced4db0d", "Victorian home at golden hour"),
-    ],
-  },
-  {
-    slug: "farmhouse",
-    name: "Farmhouse",
-    description:
-      "Modern farmhouse style blends rustic board-and-batten siding with bright, airy interiors and apron-front sinks. It feels grounded and friendly — like country living updated for everyday comfort.",
-    heroImage: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80",
-    images: [
-      u("photo-1600585154526-990dced4db0d", "White modern farmhouse"),
-      u("photo-1600607687644-c7171b42498f", "Farmhouse kitchen with island"),
-      u("photo-1600607687939-ce8a6c25118c", "Farmhouse with black windows"),
-      u("photo-1600047509358-637dc3f933cd", "Rustic farmhouse exterior"),
-      u("photo-1568605114967-8130f3a36994", "Farmhouse with wraparound porch"),
-    ],
-  },
-  {
-    slug: "mid-century-modern",
-    name: "Mid-Century Modern",
-    description:
-      "Mid-century modern homes feature flat or low-slope roofs, post-and-beam construction, and walls of glass. They celebrate simplicity, connection to nature, and the optimistic design of the 1950s and 60s.",
-    heroImage: "https://images.unsplash.com/photo-1600607687929-4e01ac5e6259?w=1200&q=80",
-    images: [
-      u("photo-1600607687929-4e01ac5e6259", "Mid-century home with palm trees"),
-      u("photo-1600566752355-35792bedcfea", "Mid-century modern at dusk"),
-      u("photo-1600585154340-be6161a56a0c", "Mid-century with carport"),
-      u("photo-1600047509807-ba8f84d040f3", "Mid-century flat roof design"),
-      u("photo-1613490493576-7fde63acd811", "Mid-century poolside home"),
-    ],
-  },
-  {
-    slug: "bungalow",
-    name: "Bungalow",
-    description:
-      "Bungalows are modest single-story or one-and-a-half-story homes with efficient layouts and front porches. They are among the most approachable builds for first-time owners and infill lots.",
-    heroImage: "https://images.unsplash.com/photo-1600047509807-ba8f84d040f3?w=1200&q=80",
-    images: [
-      u("photo-1600047509807-ba8f84d040f3", "Classic bungalow with porch"),
-      u("photo-1568605114967-8130f3a36994", "Bungalow with gabled roof"),
-      u("photo-1570129477492-45c003edd2be", "Charming bungalow garden"),
-      u("photo-1583608205776-bfd35f0d9f00", "Bungalow with stone path"),
-      u("photo-1512917774080-9991f1c4c750", "Bungalow neighborhood"),
-    ],
-  },
-  {
-    slug: "log-cabin",
-    name: "Log Cabin",
-    description:
-      "Log cabins use stacked timber walls for a rugged, natural look that fits mountain and lakeside settings. They offer excellent insulation and a retreat atmosphere that feels close to the outdoors.",
-    heroImage: "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1200&q=80",
-    images: [
-      u("photo-1449844908441-8829872d2607", "Log cabin in the forest"),
-      u("photo-1518780664697-55e3ad007233", "Rustic log cabin exterior"),
-      u("photo-1470770903676-69b98201ea1c", "Log cabin by a lake"),
-      u("photo-1501785888041-af3ef285b470", "Mountain log cabin"),
-      u("photo-1464822759023-fed622ff2c3b", "Snowy log cabin retreat"),
-    ],
-  },
-  {
-    slug: "a-frame",
-    name: "A-Frame",
-    description:
-      "A-frame houses have steep triangular roofs that run from peak to foundation, creating dramatic vaulted interiors. They are popular as vacation homes and compact builds on sloped terrain.",
-    heroImage: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=80",
-    images: [
-      u("photo-1520250497591-112f2f40a3f4", "A-frame cabin in the woods"),
-      u("photo-1542718610-a1d656d1884c", "A-frame with large windows"),
-      u("photo-1506905925346-21bda4d32df4", "Mountain A-frame home"),
-      u("photo-1510798837691-316f588fa47e", "A-frame by the water"),
-      u("photo-1504280390367-361c6d9f38f4", "Modern A-frame exterior"),
-    ],
-  },
-  {
-    slug: "tiny-home",
-    name: "Tiny Home",
-    description:
-      "Tiny homes maximize every square foot with clever storage, loft sleeping areas, and often wheels for mobility. They suit minimalists and buyers focused on affordability and a smaller environmental footprint.",
-    heroImage: "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1200&q=80",
-    images: [
-      u("photo-1523217582562-09d0def993a6", "Tiny home on wheels"),
-      u("photo-1570129477492-45c003edd2be", "Compact tiny house exterior"),
-      u("photo-1600585154526-990dced4db0d", "Modern tiny home design"),
-      u("photo-1600607687644-c7171b42498f", "Tiny home interior kitchen"),
-      u("photo-1600607687939-ce8a6c25118c", "Tiny home loft bedroom"),
-    ],
-  },
-  {
-    slug: "townhouse",
-    name: "Townhouse",
-    description:
-      "Townhouses share side walls with neighbors, packing multiple floors into a narrow urban or suburban lot. They offer more space than condos with less yard maintenance than detached homes.",
-    heroImage: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
-    images: [
-      u("photo-1600596542815-ffad4c1539a9", "Row of modern townhouses"),
-      u("photo-1600566753190-17f926baaecd", "Urban townhouse street"),
-      u("photo-1600047509358-637dc3f933cd", "Brick townhouse row"),
-      u("photo-1605276374101-de4c0a3ff296", "Townhouse with garage"),
-      u("photo-1564013799919-ab600027ffc6", "Suburban townhouse community"),
-    ],
-  },
-  {
-    slug: "split-level",
-    name: "Split-Level",
-    description:
-      "Split-level homes stagger floors with short flights of stairs between living, sleeping, and garage zones. Common in mid-century suburbs, they separate activity areas without a full two-story climb.",
-    heroImage: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&q=80",
-    images: [
-      u("photo-1600566752355-35792bedcfea", "Split-level suburban home"),
-      u("photo-1600585154340-be6161a56a0c", "Split-level with front steps"),
-      u("photo-1600047509807-ba8f84d040f3", "Split-level brick exterior"),
-      u("photo-1570129477492-45c003edd2be", "Split-level with driveway"),
-      u("photo-1512917774080-9991f1c4c750", "Split-level at sunset"),
-    ],
-  },
-  {
-    slug: "prairie-style",
-    name: "Prairie Style",
-    description:
-      "Prairie style homes, inspired by Frank Lloyd Wright, emphasize horizontal lines, overhanging eaves, and integration with the landscape. Bands of windows and open plans create a calm, grounded presence.",
-    heroImage: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1200&q=80",
-    images: [
-      u("photo-1600607687644-c7171b42498f", "Prairie style horizontal lines"),
-      u("photo-1600607687939-ce8a6c25118c", "Prairie home with flat roof"),
-      u("photo-1600585154526-990dced4db0d", "Prairie style with stone"),
-      u("photo-1600566753190-17f926baaecd", "Prairie home in landscape"),
-      u("photo-1600047509358-637dc3f933cd", "Prairie style windows"),
-    ],
-  },
-  {
-    slug: "barndominium",
-    name: "Barndominium",
-    description:
-      "Barndominiums combine steel or wood barn frames with finished living quarters under one roof. They are fast to build, cost-effective per square foot, and popular on rural acreage.",
-    heroImage: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80",
-    images: [
-      u("photo-1500382017468-9049fed747ef", "Barndominium on open land"),
-      u("photo-1464226184888-fa80b87dee38", "Metal barn-style home"),
-      u("photo-1416331108676-a22ccb276e35", "Rural barndominium exterior"),
-      u("photo-1501594907352-04cda38ccbc6", "Modern barn home design"),
-      u("photo-1600585154340-be6161a56a0c", "Barndominium with porch"),
-    ],
-  },
-  {
-    slug: "coastal",
-    name: "Coastal / Beach House",
-    description:
-      "Coastal homes are built for sea air and views with elevated foundations, wide decks, and weather-resistant materials. Light colors and open layouts capture breezes and a vacation state of mind year-round.",
-    heroImage: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=1200&q=80",
-    images: [
-      u("photo-1499793983690-e29da59ef1c2", "Beach house by the ocean"),
-      u("photo-1512917774080-9991f1c4c750", "Coastal home with deck"),
-      u("photo-1507525428034-b723cf961d3e", "Beachfront property"),
-      u("photo-1473496160054-6234557a7992", "Coastal cottage exterior"),
-      u("photo-1506905925346-21bda4d32df4", "Seaside home with view"),
-    ],
-  },
+  h("ranch", "Ranch", "Single-story ranch homes stretch wide across the lot with open floor plans and easy indoor-outdoor flow. They are especially popular with families and retirees who want step-free living and a relaxed, approachable feel.", 0),
+  h("colonial", "Colonial", "Colonial homes feature symmetrical facades, centered front doors, and evenly spaced windows. This timeless style feels formal and welcoming, with formal living and dining rooms that anchor family gatherings.", 1),
+  h("craftsman", "Craftsman", "Craftsman bungalows emphasize handcrafted details, low-pitched roofs, and wide front porches supported by tapered columns. Natural materials and built-in woodwork create a warm, artisan character inside and out.", 2),
+  h("mediterranean", "Mediterranean", "Mediterranean homes draw from Spanish and Italian villas with stucco walls, red tile roofs, and arched doorways. Courtyards, wrought iron, and warm palettes evoke sun-drenched coastal living.", 3),
+  h("contemporary", "Contemporary", "Contemporary homes embrace clean lines, large glass panels, and open layouts that blur the boundary between inside and out. They suit buyers who want a sleek, current aesthetic with flexible living spaces.", 4),
+  h("cottage", "Cottage", "Cottage-style homes feel storybook charming with cozy rooms, pitched roofs, and flower-filled gardens. They are ideal for those who want a smaller footprint with personality and a sense of retreat.", 5),
+  h("tudor", "Tudor", "Tudor revival homes are known for steep gables, decorative half-timbering, and tall chimneys. The style feels historic and distinctive, often found in established neighborhoods with old-world charm.", 6),
+  h("cape-cod", "Cape Cod", "Cape Cod homes are compact and symmetrical with steep roofs designed for snow and a central chimney. This New England classic feels snug, efficient, and perfectly suited to coastal or suburban lots.", 7),
+  h("victorian", "Victorian", "Victorian homes celebrate ornate trim, bay windows, and wraparound porches from the late 19th century. They appeal to buyers who love character, high ceilings, and richly detailed architecture.", 8),
+  h("farmhouse", "Farmhouse", "Farmhouse style blends rustic siding with bright, airy interiors and practical layouts rooted in rural life. It feels grounded and friendly — like country living updated for everyday comfort.", 9),
+  h("mid-century-modern", "Mid-Century Modern", "Mid-century modern homes feature flat or low-slope roofs, post-and-beam construction, and walls of glass. They celebrate simplicity, connection to nature, and the optimistic design of the 1950s and 60s.", 10),
+  h("bungalow", "Bungalow", "Bungalows are modest single-story or one-and-a-half-story homes with efficient layouts and front porches. They are among the most approachable builds for first-time owners and infill lots.", 11),
+  h("log-cabin", "Log Cabin", "Log cabins use stacked timber walls for a rugged, natural look that fits mountain and lakeside settings. They offer excellent insulation and a retreat atmosphere that feels close to the outdoors.", 12),
+  h("a-frame", "A-Frame", "A-frame houses have steep triangular roofs that run from peak to foundation, creating dramatic vaulted interiors. They are popular as vacation homes and compact builds on sloped terrain.", 13),
+  h("tiny-home", "Tiny Home", "Tiny homes maximize every square foot with clever storage, loft sleeping areas, and often wheels for mobility. They suit minimalists and buyers focused on affordability and a smaller environmental footprint.", 14),
+  h("townhouse", "Townhouse", "Townhouses share side walls with neighbors, packing multiple floors into a narrow urban or suburban lot. They offer more space than condos with less yard maintenance than detached homes.", 15),
+  h("split-level", "Split-Level", "Split-level homes stagger floors with short flights of stairs between living, sleeping, and garage zones. Common in mid-century suburbs, they separate activity areas without a full two-story climb.", 16),
+  h("prairie-style", "Prairie Style", "Prairie style homes, inspired by Frank Lloyd Wright, emphasize horizontal lines, overhanging eaves, and integration with the landscape. Bands of windows and open plans create a calm, grounded presence.", 17),
+  h("barndominium", "Barndominium", "Barndominiums combine steel or wood barn frames with finished living quarters under one roof. They are fast to build, cost-effective per square foot, and popular on rural acreage.", 18),
+  h("coastal", "Coastal / Beach House", "Coastal homes are built for sea air and views with elevated foundations, wide decks, and weather-resistant materials. Light colors and open layouts capture breezes and a vacation state of mind year-round.", 19),
+  h("spanish-revival", "Spanish Revival", "Spanish Revival homes highlight white stucco, clay tile roofs, and arched windows inspired by colonial Spain. Wrought-iron balconies and courtyards bring drama and shade to warm-climate neighborhoods.", 3, "Mediterranean"),
+  h("italian-villa", "Italian Villa", "Italian Villa style favors symmetrical facades, tall windows, and stone or stucco walls with classical proportions. Terraced gardens and loggias extend living outdoors in a refined Mediterranean manner.", 4, "Mediterranean"),
+  h("georgian", "Georgian", "Georgian homes are formal and balanced with brick facades, multi-pane windows, and decorative crowns above the door. They reflect 18th-century English taste adapted for grand American streetscapes.", 1, "Colonial"),
+  h("federal", "Federal", "Federal-style homes refine colonial symmetry with elliptical fanlights, slender columns, and delicate moldings. They feel elegant and restrained, common in historic East Coast cities.", 2, "Colonial"),
+  h("dutch-colonial", "Dutch Colonial", "Dutch Colonial homes are recognized by their broad gambrel roofs that resemble a barn silhouette. The style adds generous headroom upstairs while keeping a friendly, traditional curb appeal.", 6, "Colonial"),
+  h("saltbox", "Saltbox", "Saltbox houses have a long, sloping rear roof that originally simplified construction and shed snow. The asymmetrical profile is a Colonial New England hallmark with a cozy, lived-in character.", 7, "Colonial"),
+  h("arts-and-crafts", "Arts and Crafts", "Arts and Crafts homes prize honest materials, exposed joinery, and designs that reject mass production. Built-in benches, fireplaces, and wood paneling create intimate, craft-forward rooms.", 2, "Craftsman"),
+  h("mission-revival", "Mission Revival", "Mission Revival draws from California's Spanish missions with smooth stucco, parapet walls, and arched arcades. Earth-tone palettes and clay tile give a grounded Southwestern presence.", 3, "Craftsman"),
+  h("minimalist", "Minimalist", "Minimalist homes strip decoration down to essentials with flat planes, neutral palettes, and precise detailing. Every element is intentional, favoring calm spaces and abundant natural light.", 4, "Contemporary"),
+  h("industrial-loft", "Industrial Loft", "Industrial loft conversions expose brick, steel beams, and ductwork inside former warehouses or factories. Open volumes and oversized windows suit urban creatives who want raw character at scale.", 10, "Contemporary"),
+  h("container-home", "Container Home", "Container homes repurpose steel shipping modules into modular living units that can stack or span. They offer a bold contemporary look with fast assembly and a smaller material footprint.", 11, "Contemporary"),
+  h("scandinavian", "Scandinavian", "Scandinavian-inspired homes combine light wood, simple forms, and functional layouts that maximize daylight. Hygge-friendly interiors feel uncluttered, warm, and deeply connected to nature.", 12, "Contemporary"),
+  h("passive-house", "Passive House", "Passive House builds prioritize airtight envelopes, thick insulation, and heat-recovery ventilation for extreme efficiency. The contemporary forms prove sustainability and comfort can go hand in hand.", 13, "Contemporary"),
+  h("modern-farmhouse", "Modern Farmhouse", "Modern Farmhouse pairs classic gabled silhouettes with black window frames, metal roofs, and crisp white siding. It is the most popular twist on rural style for suburban buyers today.", 9, "Farmhouse"),
+  h("country-farmhouse", "Country Farmhouse", "Country Farmhouse leans more traditional with wraparound porches, wood floors, and apron-front sinks. It feels generations-deep — practical, welcoming, and tied to working land.", 14, "Farmhouse"),
+  h("queen-anne", "Queen Anne", "Queen Anne Victorians are the ornate peak of the era with turrets, patterned shingles, and gingerbread trim. No two facades look alike, making them favorites for preservation-minded owners.", 8, "Victorian"),
+  h("gothic-revival", "Gothic Revival", "Gothic Revival homes echo medieval churches with pointed arches, steep gables, and decorative bargeboards. They feel romantic and vertical, standing out on tree-lined historic streets.", 15, "Victorian"),
+  h("raised-ranch", "Raised Ranch", "Raised ranch homes enter on a main level with a full lower floor tucked partly below grade. The split entry adds extra square footage without a full two-story street presence.", 0, "Ranch"),
+  h("english-cottage", "English Cottage", "English Cottage style uses stone, thatch or shingle roofs, and irregular massing for a fairy-tale countryside look. Small paned windows and climbing gardens complete the storybook charm.", 5, "Cottage"),
+  h("eichler-home", "Eichler Home", "Eichler homes are post-and-beam mid-century tract houses with atriums, radiant heat, and walls of glass. They brought modernist design to suburban California at an accessible scale.", 10, "Mid-Century Modern"),
+  h("adobe-pueblo", "Adobe / Pueblo", "Adobe and Pueblo homes use thick earthen walls, rounded edges, and flat or parapet roofs for desert climates. Thermal mass keeps interiors cool — a tradition rooted in Indigenous Southwest building.", 16),
+  h("french-country", "French Country", "French Country homes blend stone, stucco, and hipped roofs with tall windows and rustic elegance. They evoke provincial manor houses with warm kitchens and vineyard views.", 17),
+  h("greek-revival", "Greek Revival", "Greek Revival homes borrow temple fronts with bold columns, pediments, and white-painted facades. Popular in the 19th century, they still convey permanence and civic grandeur.", 18),
+  h("shotgun-house", "Shotgun House", "Shotgun houses align rooms in a straight line from front to back without hallways. Narrow and efficient, they define historic Southern and Creole neighborhoods with deep community roots.", 21),
+  h("chalet", "Chalet / Alpine", "Chalet homes feature wide overhangs, heavy timber, and sloped roofs built to shed deep snow. They evoke Alpine ski lodges with cozy fireplaces and mountain views.", 12),
+  h("japanese-inspired", "Japanese-Inspired", "Japanese-inspired homes use clean lines, natural wood, and sliding screens to connect rooms with gardens. Low profiles and careful craftsmanship create tranquil, meditative living spaces.", 22),
+  h("neoclassical", "Neoclassical", "Neoclassical homes reference ancient Greece and Rome with grand columns, balanced wings, and formal entries. They suit owners who want stately curb appeal and symmetrical floor plans.", 1, "Colonial"),
+  h("modular-prefab", "Modular / Prefab", "Modular and prefab homes are factory-built in sections then assembled on site for speed and quality control. Designs range from modest cabins to striking contemporary boxes.", 11),
+  h("dome-home", "Dome Home", "Dome homes use curved shells that enclose volume with minimal structural material. They handle wind and snow efficiently and create open, futuristic interiors unlike conventional boxes.", 14),
+  h("pueblo-revival", "Pueblo Revival", "Pueblo Revival mimics Indigenous adobe villages with stepped massing, rounded parapets, and earth tones. Vigas and bancos add Southwest character to modern stucco construction.", 16, "Adobe / Pueblo"),
 ];

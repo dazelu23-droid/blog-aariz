@@ -80,7 +80,7 @@ export function escapeLike(q: string): string {
 }
 
 export const SECURITY_HEADERS: Record<string, string> = {
-  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://images.unsplash.com; style-src 'self' 'unsafe-inline'",
+  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self'; style-src 'self' 'unsafe-inline'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
 };

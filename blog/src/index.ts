@@ -108,7 +108,7 @@ async function requireCsrf(
 async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
   const { results } = await db
     .prepare(
-      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url,
+      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
@@ -125,6 +125,7 @@ async function fetchHomeSummaries(db: D1Database): Promise<HomeTypeSummary[]> {
     name: String(row.name),
     description: String(row.description),
     hero_image_url: String(row.hero_image_url),
+    origin_name: row.origin_name ? String(row.origin_name) : null,
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,
@@ -208,6 +209,8 @@ async function fetchCommentTree(
 
 app.get("/style.css", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/theme.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get("/music.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get("/lofi.mp3", async (c) => c.env.ASSETS.fetch(c.req.raw));
 app.get("/home.js", async (c) => c.env.ASSETS.fetch(c.req.raw));
 
 app.get("/", async (c) => {
@@ -362,18 +365,18 @@ app.get("/search", async (c) => {
   const pattern = `%${escapeLike(q.trim().slice(0, 100))}%`;
   const { results } = await c.env.DB
     .prepare(
-      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url,
+      `SELECT ht.id, ht.slug, ht.name, ht.description, ht.hero_image_url, ht.origin_name,
               COALESCE(AVG(r.stars), 0) AS avg_rating,
               COUNT(DISTINCT r.id) AS rating_count,
               COUNT(DISTINCT hc.id) AS comment_count
        FROM home_types ht
        LEFT JOIN ratings r ON r.home_type_id = ht.id
        LEFT JOIN home_comments hc ON hc.home_type_id = ht.id
-       WHERE ht.name LIKE ? ESCAPE '\\' COLLATE NOCASE OR ht.description LIKE ? ESCAPE '\\' COLLATE NOCASE
+       WHERE ht.name LIKE ? ESCAPE '\\' COLLATE NOCASE OR ht.description LIKE ? ESCAPE '\\' COLLATE NOCASE OR ht.origin_name LIKE ? ESCAPE '\\' COLLATE NOCASE
        GROUP BY ht.id
        ORDER BY ht.sort_order ASC`,
     )
-    .bind(pattern, pattern)
+    .bind(pattern, pattern, pattern)
     .all();
 
   const homes = (results as Record<string, unknown>[]).map((row) => ({
@@ -382,6 +385,7 @@ app.get("/search", async (c) => {
     name: String(row.name),
     description: String(row.description),
     hero_image_url: String(row.hero_image_url),
+    origin_name: row.origin_name ? String(row.origin_name) : null,
     avg_rating: Number(row.avg_rating) || 0,
     rating_count: Number(row.rating_count) || 0,
     comment_count: Number(row.comment_count) || 0,

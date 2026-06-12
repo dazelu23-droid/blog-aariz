@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS home_types (
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     hero_image_url TEXT NOT NULL,
+    origin_name TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0
 );
 
