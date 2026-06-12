@@ -69,12 +69,18 @@ export function validateComment(body: unknown): string | null {
   return null;
 }
 
+export function validateRating(stars: unknown): string | null {
+  const n = Number(stars);
+  if (!Number.isInteger(n) || n < 1 || n > 5) return "Rating must be between 1 and 5 stars.";
+  return null;
+}
+
 export function escapeLike(q: string): string {
   return q.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 export const SECURITY_HEADERS: Record<string, string> = {
-  "Content-Security-Policy": "default-src 'self'",
+  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://images.unsplash.com; style-src 'self' 'unsafe-inline'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
 };
