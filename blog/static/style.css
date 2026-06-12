@@ -1,11 +1,11 @@
 :root {
   --accent: #4f46e5;
   --accent-hover: #4338ca;
-  --bg: #f8fafc;
-  --surface: #ffffff;
+  --bg: #f7f1e8;
+  --surface: #fffdf9;
   --text: #1e293b;
   --text-muted: #64748b;
-  --border: #e2e8f0;
+  --border: #e9dfd4;
   --danger: #dc2626;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08);
   --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1);
@@ -15,11 +15,11 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border: #334155;
+  --bg: #1a1612;
+  --surface: #2a241f;
+  --text: #f5f0e8;
+  --text-muted: #a89f94;
+  --border: #3d3530;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
   --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.4);
 }

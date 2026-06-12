@@ -7,13 +7,13 @@
 }
 
 :root {
-  --bg: #faf8f5;
-  --surface: #ffffff;
+  --bg: #f7f1e8;
+  --surface: #fffdf9;
   --text: #1a1a1a;
   --text-muted: #5c5c5c;
   --accent: #c45d3a;
   --accent-dark: #a34a2d;
-  --border: #e8e2db;
+  --border: #e9dfd4;
   --shadow: 0 4px 24px rgba(26, 26, 26, 0.08);
   --radius: 12px;
   --font-serif: "DM Serif Display", Georgia, serif;
@@ -52,7 +52,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(250, 248, 245, 0.92);
+  background: rgba(247, 241, 232, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
